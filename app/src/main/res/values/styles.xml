@@ -1,0 +1,27 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorControlNormal">@color/red_dark</item>
+        <item name="colorControlHighlight">@color/red</item>
+        <item name="colorControlActivated">@color/red</item>
+
+        <item name="android:windowBackground">@color/cream</item>
+        <item name="circularProgressBarStyle">@style/CircularProgressBar</item>
+
+        <item name="android:spinnerStyle">@style/Widget.AppCompat.Spinner.DropDown.ActionBar</item>
+        <item name="android:spinnerItemStyle">@style/Widget.AppCompat.DropDownItem.Spinner</item>
+    </style>
+
+    <style name="CircularProgressBar">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="stroke_width">3dp</item>
+        <item name="progress" format="float">0.1</item>
+        <item name="progress_color">#ffff4444</item>
+        <item name="progress_background_color">#ffffffff</item>
+        <item name="marker_visible">true</item>
+        <item name="thumb_visible">true</item>
+    </style>
+</resources>
