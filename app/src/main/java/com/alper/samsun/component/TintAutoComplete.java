@@ -1,4 +1,4 @@
-package com.etnclp.samsun.component;
+package com.alper.samsun.component;
 
 import android.content.Context;
 import android.support.v7.internal.widget.TintTypedArray;

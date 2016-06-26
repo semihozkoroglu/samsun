@@ -1,12 +1,10 @@
-package com.etnclp.samsun;
+package com.alper.samsun;
 
 import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.etnclp.samsun.R;
-import com.etnclp.samsun.data.Step;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -40,7 +38,7 @@ public class SamsunMapFragment extends SupportMapFragment implements
     private int ZOOM_LEVEL = 14;
 
     public interface OnLocationFoundListener {
-        void onLocationFounded();
+        void onLocationFounded(Location location);
     }
 
     @Override
@@ -104,7 +102,7 @@ public class SamsunMapFragment extends SupportMapFragment implements
         mLocation = location;
 
         if (!isLocationFounded && mListener != null) {
-            mListener.onLocationFounded();
+            mListener.onLocationFounded(location);
 
             updateLocation();
 
@@ -151,18 +149,16 @@ public class SamsunMapFragment extends SupportMapFragment implements
         return new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
     }
 
-    public void setStationMarker(ArrayList<Step> selectedWay) {
+    public void setStationMarker(LatLng targetLocation) {
         googleMap.clear();
 
         googleMap.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_map_marker))
                 .position(getCurrentLocation()));
 
-        for (Step item : selectedWay) {
-            googleMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_station_map_marker))
-                    .position(new LatLng(Double.parseDouble(item.ToLong.replace(",", ".")), Double.parseDouble(item.ToLat.replace(",", ".")))));
-        }
+        googleMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_station_map_marker))
+                .position(targetLocation));
     }
 
     public void drawPath(String polyline) {
@@ -177,10 +173,13 @@ public class SamsunMapFragment extends SupportMapFragment implements
 
             mLine = googleMap.addPolyline(new PolylineOptions()
                     .add(new LatLng(src.latitude, src.longitude), new LatLng(dest.latitude, dest.longitude))
-                    .width(10)
-                    .color(getResources().getColor(R.color.material_deep_teal_500))
+                    .width(20)
+                    .color(getResources().getColor(R.color.orange))
                     .geodesic(true));
         }
+
+        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                getCurrentLocation(), ZOOM_LEVEL));
     }
 
     private List<LatLng> decodePoly(String encoded) {

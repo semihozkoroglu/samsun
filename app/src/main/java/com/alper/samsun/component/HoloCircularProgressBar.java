@@ -1,4 +1,4 @@
-package com.etnclp.samsun.component;
+package com.alper.samsun.component;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -17,7 +17,7 @@ import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.Transformation;
 
-import com.etnclp.samsun.R;
+import com.alper.samsun.R;
 
 /**
  * Created by semihozkoroglu on 02/06/15.

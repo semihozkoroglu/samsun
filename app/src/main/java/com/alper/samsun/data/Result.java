@@ -1,4 +1,4 @@
-package com.etnclp.samsun.data;
+package com.alper.samsun.data;
 
 import java.io.Serializable;
 
@@ -7,4 +7,5 @@ import java.io.Serializable;
  */
 public class Result implements Serializable {
     public Geometry geometry;
+    public String formatted_address;
 }

@@ -12,7 +12,7 @@
         android:layout_height="60dp"
         android:background="@color/red_transparent">
 
-        <com.etnclp.samsun.component.TintAutoComplete
+        <com.alper.samsun.component.TintAutoComplete
             android:id="@+id/tvAutoComplete"
             android:layout_width="match_parent"
             android:layout_height="40dp"
@@ -27,7 +27,7 @@
             android:textColorHint="@color/white"
             android:textSize="15sp" />
 
-        <com.etnclp.samsun.component.HoloCircularProgressBar
+        <com.alper.samsun.component.HoloCircularProgressBar
             android:id="@+id/holoCircularProgressBar"
             android:layout_width="35dp"
             android:layout_height="35dp"

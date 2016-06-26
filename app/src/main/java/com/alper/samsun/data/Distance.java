@@ -1,4 +1,4 @@
-package com.etnclp.samsun.data;
+package com.alper.samsun.data;
 
 import java.io.Serializable;
 

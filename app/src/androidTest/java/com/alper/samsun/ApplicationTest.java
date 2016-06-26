@@ -1,4 +1,4 @@
-package com.etnclp.samsun;
+package com.alper.samsun;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
