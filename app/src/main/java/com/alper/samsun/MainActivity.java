@@ -20,28 +20,20 @@ import com.alper.samsun.data.Place;
 import com.alper.samsun.data.PlaceDetail;
 import com.alper.samsun.data.SearchResult;
 import com.alper.samsun.data.Way;
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+import com.alper.samsun.network.ServiceProvider;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.gson.Gson;
 
 import java.util.ArrayList;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class MainActivity extends ActionBarActivity implements SamsunMapFragment.OnLocationFoundListener {
 
     private AutoCompleteTextView tvAutoComplete;
     private SamsunMapFragment frMap;
     private HoloCircularProgressBar progressBar;
-
-    /**
-     * Request'leri bu queue uzerinden gonderiyoruz
-     */
-    private RequestQueue mRequestQueue;
 
     /**
      * Search sonucunda donen cevabi bu class'da tutuyoruz
@@ -104,8 +96,6 @@ public class MainActivity extends ActionBarActivity implements SamsunMapFragment
                 .replace(flMapContainer.getId(), frMap)
                 .commit();
 
-        mRequestQueue = Volley.newRequestQueue(getBaseContext());
-
         /**
          * Location'in bulunmasi sirasinda progress'i gosterelim.
          */
@@ -148,43 +138,30 @@ public class MainActivity extends ActionBarActivity implements SamsunMapFragment
 
         String searchedKey = tvAutoComplete.getText().toString();
 
-        StringRequest request = new StringRequest(Request.Method.GET, Constant.getSearchUrl(searchedKey), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String s) {
-                /**
-                 * Search geldiginde class'i dolduralim
-                 */
-                mSearchResult = new Gson().fromJson(s, SearchResult.class);
+        ServiceProvider.getProvider().getSearchResult(Constant.getSearchUrl(searchedKey))
+                .enqueue(new Callback<SearchResult>() {
+                    @Override
+                    public void onResponse(Call<SearchResult> call, Response<SearchResult> response) {
+                        mSearchResult = response.body();
 
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
+                        /**
+                         * Search bitince progress'i gizleyelim
+                         */
+                        progressBar.setVisibility(View.GONE);
 
-                setAutoCompleteAdapter();
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
+                        setAutoCompleteAdapter();
+                    }
 
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Bağlantı Hatası")
-                        .setMessage("Bir hata oluştur \n" + volleyError.getMessage())
-                        .setCancelable(false)
-                        .create().show();
-            }
-        });
+                    @Override
+                    public void onFailure(Call<SearchResult> call, Throwable t) {
+                        progressBar.setVisibility(View.GONE);
 
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                180000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        mRequestQueue.add(request);
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Bağlantı Hatası")
+                                .setMessage("Bir hata oluştu \n" + t.getMessage())
+                                .create().show();
+                    }
+                });
     }
 
     private void setAutoCompleteAdapter() {
@@ -213,45 +190,33 @@ public class MainActivity extends ActionBarActivity implements SamsunMapFragment
          */
         progressBar.setVisibility(View.VISIBLE);
 
-        StringRequest request = new StringRequest(Request.Method.GET, Constant.getPlaceDetailUrl(placeId), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String s) {
-                /**
-                 * Search geldiginde class'i dolduralim
-                 */
-                mPlaceDetail = new Gson().fromJson(s, PlaceDetail.class);
+        ServiceProvider.getProvider().getPlaceDetail(Constant.getPlaceDetailUrl(placeId))
+                .enqueue(new Callback<PlaceDetail>() {
+                    @Override
+                    public void onResponse(Call<PlaceDetail> call, Response<PlaceDetail> response) {
+                        /**
+                         * Search geldiginde class'i dolduralim
+                         */
+                        mPlaceDetail = response.body();
 
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
+                        /**
+                         * Search bitince progress'i gizleyelim
+                         */
+                        progressBar.setVisibility(View.GONE);
 
-                createPollylineRequest(destinationDesription);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
+                        createPollylineRequest(destinationDesription);
+                    }
 
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Bağlantı Hatası")
-                        .setMessage("Bir hata oluştur \n" + volleyError.getMessage())
-                        .setCancelable(false)
-                        .create().show();
-            }
-        });
+                    @Override
+                    public void onFailure(Call<PlaceDetail> call, Throwable t) {
+                        progressBar.setVisibility(View.GONE);
 
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                180000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-        /**
-         * Burda request baslar
-         */
-        mRequestQueue.add(request);
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Bağlantı Hatası")
+                                .setMessage("Bir hata oluştu \n" + t.getMessage())
+                                .create().show();
+                    }
+                });
     }
 
     @Override
@@ -261,44 +226,35 @@ public class MainActivity extends ActionBarActivity implements SamsunMapFragment
          */
         progressBar.setVisibility(View.GONE);
 
-        StringRequest request = new StringRequest(Request.Method.GET, Constant.getCurrentLocationDetail(
-                location.getLatitude() + "", location.getLongitude() + ""
-        ), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String s) {
+        ServiceProvider.getProvider().getCurrentPlaceDetail(Constant.getCurrentLocationDetail(
+                location.getLatitude() + "", location.getLongitude() + ""))
+                .enqueue(new Callback<CurrentPlaceDetail>() {
+                    @Override
+                    public void onResponse(Call<CurrentPlaceDetail> call, Response<CurrentPlaceDetail> response) {
+                        CurrentPlaceDetail currentLocationDetail = response.body();
 
-                CurrentPlaceDetail currentLocationDetail = new Gson().fromJson(s, CurrentPlaceDetail.class);
+                        if (currentLocationDetail.results != null && currentLocationDetail.results.size() > 0) {
+                            mCurrentLocationDescription = currentLocationDetail.results.get(0).formatted_address;
+                        }
+                        /**
+                         * Search bitince progress'i gizleyelim
+                         */
+                        progressBar.setVisibility(View.GONE);
+                    }
 
-                if (currentLocationDetail.results != null && currentLocationDetail.results.size() > 0) {
-                    mCurrentLocationDescription = currentLocationDetail.results.get(0).formatted_address;
-                }
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
+                    @Override
+                    public void onFailure(Call<CurrentPlaceDetail> call, Throwable t) {
+                        /**
+                         * Search bitince progress'i gizleyelim
+                         */
+                        progressBar.setVisibility(View.GONE);
 
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Bağlantı Hatası")
-                        .setMessage("Bir hata oluştur \n" + volleyError.getMessage())
-                        .setCancelable(false)
-                        .create().show();
-            }
-        });
-
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                180000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        mRequestQueue.add(request);
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Bağlantı Hatası")
+                                .setMessage("Bir hata oluştur \n" + t.getMessage())
+                                .create().show();
+                    }
+                });
     }
 
     /**
@@ -314,51 +270,43 @@ public class MainActivity extends ActionBarActivity implements SamsunMapFragment
         frMap.setStationMarker(new LatLng(mPlaceDetail.result.geometry.location.lat.doubleValue(),
                 mPlaceDetail.result.geometry.location.lng.doubleValue()));
 
-        StringRequest request = new StringRequest(Request.Method.GET, Constant.getPointDistanceInfo(
+        ServiceProvider.getProvider().getPointDistanceInfo(Constant.getPointDistanceInfo(
                 mCurrentLocationDescription,
-                destinationDesription
-        ), new Response.Listener<String>() {
-            @Override
-            public void onResponse(String s) {
-                /**
-                 * Search geldiginde class'i dolduralim
-                 */
-                mWayResponse = new Gson().fromJson(s, Way.class);
+                destinationDesription))
+                .enqueue(new Callback<Way>() {
+                    @Override
+                    public void onResponse(Call<Way> call, Response<Way> response) {
+                        /**
+                         * Search geldiginde class'i dolduralim
+                         */
+                        mWayResponse = response.body();
 
-                /**
-                 * Eger yol geldiyse cizdirelim
-                 */
-                if (mWayResponse.routes != null && mWayResponse.routes.size() > 0) {
-                    for (LegStep legStep : mWayResponse.routes.get(0).legs.get(0).steps) {
-                        frMap.drawPath(legStep.polyline.points);
+                        /**
+                         * Eger yol geldiyse cizdirelim
+                         */
+                        if (mWayResponse.routes != null && mWayResponse.routes.size() > 0) {
+                            for (LegStep legStep : mWayResponse.routes.get(0).legs.get(0).steps) {
+                                frMap.drawPath(legStep.polyline.points);
+                            }
+                        }
+                        /**
+                         * Search bitince progress'i gizleyelim
+                         */
+                        progressBar.setVisibility(View.GONE);
                     }
-                }
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError volleyError) {
-                /**
-                 * Search bitince progress'i gizleyelim
-                 */
-                progressBar.setVisibility(View.GONE);
 
-                new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Bağlantı Hatası")
-                        .setMessage("Bir hata oluştur \n" + volleyError.getMessage())
-                        .setCancelable(false)
-                        .create().show();
-            }
-        });
+                    @Override
+                    public void onFailure(Call<Way> call, Throwable t) {
+                        /**
+                         * Search bitince progress'i gizleyelim
+                         */
+                        progressBar.setVisibility(View.GONE);
 
-        request.setRetryPolicy(new DefaultRetryPolicy(
-                180000,
-                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
-                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
-
-        mRequestQueue.add(request);
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Bağlantı Hatası")
+                                .setMessage("Bir hata oluştur \n" + t.getMessage())
+                                .create().show();
+                    }
+                });
     }
 }
