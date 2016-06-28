@@ -32,7 +32,6 @@ public class SamsunMapFragment extends SupportMapFragment implements
     private GoogleMap googleMap;
     private Location mLocation;
     private Marker mMarker;
-    private Polyline mLine;
     private OnLocationFoundListener mListener;
     private boolean isLocationFounded = false;
     private int ZOOM_LEVEL = 14;
@@ -164,18 +163,14 @@ public class SamsunMapFragment extends SupportMapFragment implements
     public void drawPath(String polyline) {
         List<LatLng> list = decodePoly(polyline);
 
-        if (mLine != null)
-            mLine.remove();
-
         for (int z = 0; z < list.size() - 1; z++) {
             LatLng src = list.get(z);
             LatLng dest = list.get(z + 1);
 
-            mLine = googleMap.addPolyline(new PolylineOptions()
+            googleMap.addPolyline(new PolylineOptions()
                     .add(new LatLng(src.latitude, src.longitude), new LatLng(dest.latitude, dest.longitude))
-                    .width(20)
-                    .color(getResources().getColor(R.color.orange))
-                    .geodesic(true));
+                    .width(15)
+                    .color(getResources().getColor(R.color.orange)));
         }
 
         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
